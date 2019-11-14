@@ -106,33 +106,71 @@ def count_accuracy(predict, y_test):
         if predict[i] == y_test[i]:
             correct_count = correct_count + 1
     
-    return correct_count/len(predict)
+    return correct_count*100/len(predict)
+
+def scidbscan_predict(scikitdbscan,test_data ):
+    result = []
+
+    for td in test_data:
+        closest_data = 0
+        min_distance = 9999
+        for i in range(len(scikitdbscan.components_)):
+            distance = eucledian_distance(scikitdbscan.components_[i],td)
+            if (distance < min_distance and scikitdbscan.labels_[i]!= -1):
+                min_distance = distance
+                closest_data = i
+
+        result.append(scikitdbscan.labels_[closest_data])
+    return result
 
 if __name__ == "__main__" :
     print('tes')
     iris = datasets.load_iris()
     # print(iris.DESCR)
-    print(iris.data)
-    print(iris.target)
-    print(iris.target_names)
 
     mydbscan = MyDBSCAN()
     scikitdbscan = DBSCAN(eps=0.41, min_samples=3)
 
-    X_train, X_test, y_train, y_test = train_test_split(iris.data, iris.target, test_size=0.33, random_state=42)
+    X_train, X_test, y_train, y_test = train_test_split(iris.data, iris.target, test_size=0.33, random_state=23 )
     mydbscan.fit(X_train, 0.41, 3)
     scikitdbscan.fit(X_train)
 
+    print("Clustering Result")
+    print(mydbscan.cluster)
+    print(scikitdbscan.labels_)
+
     mydbscan_map = create_dbscan_mapper(y_train,mydbscan.cluster)
     scikitdbscan_map = create_dbscan_mapper(y_train,scikitdbscan.labels_)
+    print("Mapping Result")
+    print(mydbscan_map)
+    print(scikitdbscan_map)
+
+    # for i in range(len(mydbscan.cluster)):
+    #     mydbscan.cluster[i] = mydbscan_map[mydbscan.cluster[i]]
+    #     scikitdbscan.labels_[i] = scikitdbscan_map[scikitdbscan.labels_[i]]
+
+    # print("Mapped Clustering Result")
+    # print(mydbscan.cluster)
+    # print(scikitdbscan.labels_)
 
     mydbscan_predict = mydbscan.predict(X_test)
-    scikitdbscan_predict = scikitdbscan.fit_predict(X_test)
-
+    scikitdbscan_predict = scidbscan_predict(scikitdbscan, X_test)
+    
+    print("Predicting Result Before Mapping")
+    print(mydbscan_predict)
+    print(scikitdbscan_predict)
     for i in range(len(mydbscan_predict)):
         mydbscan_predict[i] = mydbscan_map[mydbscan_predict[i]]
         scikitdbscan_predict[i] = scikitdbscan_map[scikitdbscan_predict[i]]
 
+    print("Solution")
+    print(y_test)
+
+    print("Predicting Result After Mapping")
+    print(mydbscan_predict)
+    print(scikitdbscan_predict)
+
+    print("Evaluation")
     print("My DBSCAN accuracy", count_accuracy(mydbscan_predict,y_test), "%")
     print("Scikit DBSCAN accuracy", count_accuracy(scikitdbscan_predict,y_test), "%")
     
