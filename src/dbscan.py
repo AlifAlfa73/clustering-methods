@@ -30,7 +30,7 @@ class MyDBSCAN:
 
     def create_cluster(self, neighbors, c):
         i = 0
-        while i < len (neighbors):
+        while i < len(neighbors):
             n = neighbors[i]
 
             if self.cluster[n] == -1:
@@ -47,7 +47,6 @@ class MyDBSCAN:
 
     def fit(self, x, eps, minpts):
         self.dataset = x
-        self.map = {}
         self.eps = eps
         self.minpts = minpts
         self.cluster =  [0 for i in range(len(self.dataset))]
@@ -64,14 +63,12 @@ class MyDBSCAN:
                     c = c +1
                     self.cluster[i] = c
                     self.create_cluster(neighbors, c)
-        
-        # self.create_mapping(c)
-        # print(self.map)
 
     def predict(self, test_data):
         result = []
-
-        for td in test_data:
+        test = []
+        print(len(self.dataset))
+        for td in test_data:         
             closest_data = 0
             min_distance = 9999
             for i in range(len(self.dataset)):
@@ -85,7 +82,6 @@ class MyDBSCAN:
 
 def create_dbscan_mapper(target, cluster):
     cluster_set = set(cluster)
-
     map = {}
     for c in cluster_set:
         counter = {}
@@ -108,18 +104,18 @@ def count_accuracy(predict, y_test):
     
     return correct_count*100/len(predict)
 
-def scidbscan_predict(scikitdbscan,test_data ):
+def scidbscan_predict(scikitdbscan,train_data,test_data):
     result = []
-
+    test = []
     for td in test_data:
         closest_data = 0
         min_distance = 9999
-        for i in range(len(scikitdbscan.components_)):
-            distance = eucledian_distance(scikitdbscan.components_[i],td)
-            if (distance < min_distance):
+        for i in range(len(train_data)):
+            distance = eucledian_distance(train_data[i],td)
+            if (distance < min_distance and scikitdbscan.labels_[i]!= -1):
                 min_distance = distance
                 closest_data = i
-
+        
         result.append(scikitdbscan.labels_[closest_data])
     return result
 
@@ -129,14 +125,13 @@ if __name__ == "__main__" :
     # print(iris.DESCR)
 
     mydbscan = MyDBSCAN()
-    scikitdbscan = DBSCAN(eps=0.41, min_samples=3, metric='euclidean')
+    scikitdbscan = DBSCAN(eps=0.4, min_samples=3, metric='euclidean')
 
-    X_train, X_test, y_train, y_test = train_test_split(iris.data, iris.target, test_size=0.33, random_state=23 )
-    mydbscan.fit(X_train, 0.41, 3)
+    X_train, X_test, y_train, y_test = train_test_split(iris.data, iris.target, test_size=0.33, random_state=77 )
+    mydbscan.fit(X_train, 0.4, 3)
     scikitdbscan.fit(X_train)
 
     print("Clustering Result")
-    print(y_train)
     print(mydbscan.cluster)
     print(scikitdbscan.labels_)
 
@@ -151,11 +146,16 @@ if __name__ == "__main__" :
     #     scikitdbscan.labels_[i] = scikitdbscan_map[scikitdbscan.labels_[i]]
 
     # print("Mapped Clustering Result")
+    # print(y_train)
     # print(mydbscan.cluster)
     # print(scikitdbscan.labels_)
 
+    # print("Evaluation")
+    # print("My DBSCAN accuracy", count_accuracy(mydbscan.cluster,y_train), "%")
+    # print("Scikit DBSCAN accuracy", count_accuracy(scikitdbscan.labels_,y_train), "%")
+
     mydbscan_predict = mydbscan.predict(X_test)
-    scikitdbscan_predict = scidbscan_predict(scikitdbscan, X_test)
+    scikitdbscan_predict = scidbscan_predict(scikitdbscan,X_train, X_test)
     
     print("Predicting Result Before Mapping")
     print(mydbscan_predict)
