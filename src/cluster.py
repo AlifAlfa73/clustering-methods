@@ -116,7 +116,7 @@ def scidbscan_predict(scikitdbscan,test_data ):
         min_distance = 9999
         for i in range(len(scikitdbscan.components_)):
             distance = eucledian_distance(scikitdbscan.components_[i],td)
-            if (distance < min_distance and scikitdbscan.labels_[i]!= -1):
+            if (distance < min_distance):
                 min_distance = distance
                 closest_data = i
 
@@ -129,13 +129,14 @@ if __name__ == "__main__" :
     # print(iris.DESCR)
 
     mydbscan = MyDBSCAN()
-    scikitdbscan = DBSCAN(eps=0.41, min_samples=3)
+    scikitdbscan = DBSCAN(eps=0.41, min_samples=3, metric='euclidean')
 
     X_train, X_test, y_train, y_test = train_test_split(iris.data, iris.target, test_size=0.33, random_state=23 )
     mydbscan.fit(X_train, 0.41, 3)
     scikitdbscan.fit(X_train)
 
     print("Clustering Result")
+    print(y_train)
     print(mydbscan.cluster)
     print(scikitdbscan.labels_)
 
