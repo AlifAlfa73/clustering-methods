@@ -125,10 +125,10 @@ if __name__ == "__main__" :
     # print(iris.DESCR)
 
     mydbscan = MyDBSCAN()
-    scikitdbscan = DBSCAN(eps=0.4, min_samples=3, metric='euclidean')
+    scikitdbscan = DBSCAN(eps=0.5, min_samples=6, metric='euclidean')
 
     X_train, X_test, y_train, y_test = train_test_split(iris.data, iris.target, test_size=0.33, random_state=77 )
-    mydbscan.fit(X_train, 0.4, 3)
+    mydbscan.fit(X_train, 0.5, 6)
     scikitdbscan.fit(X_train)
 
     print("Clustering Result")
